@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Line2D;
-
-public class Display extends JFrame {
+public class Display {
     private enum Colour {
         BLACK,
         WHITE
@@ -13,40 +11,28 @@ public class Display extends JFrame {
        Increasing Y is downward, Increasing X is rightward.
        Can draw images (sprites?)
     *  */
+    private static final int DPM = Settings.DISPLAY_MULTIPLIER; // Also size of the sq. pixel
     private Graphics2D graphics;
-    private final Colour[][] pixels;
+    private final Colour[] pixels;
+    private final int height;
+    private final int width;
     private final Dimension dimension;
     public Display() {
 
         if (Settings.SUPER_CHIP_PRESENT) {
-            dimension = new Dimension(128, 64);
-        }else dimension = new Dimension(64, 32);
+            width = 128; height = 64;
+        }else {width = 64; height = 32;}
 
-        pixels = new Colour[dimension.width][dimension.height];
+        pixels = new Colour[width*height];
+        dimension = new Dimension(width*DPM, height*DPM);
 
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setPreferredSize(new Dimension(360, 360));
-        this.setTitle(Settings.PROGRAM_TITLE);
-        this.setResizable(false);
-        this.pack();
-        this.setVisible(true);
-
-        graphics = (Graphics2D) this.getGraphics();
-
-    }
-    private void draw () {
-
-    }
-    public void changeColour(Color c) {
-        graphics.setColor(c);
-    }
-    @Override
-    public void paint(Graphics g) {
-        super.paint(g);
-        drawPixel(g,0, 0);
-    }
-    public void drawPixel(Graphics g, int pointX, int pointY) {
-        g.fillRect(pointX,pointY, 120,120);
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setPreferredSize(dimension);
+        frame.setTitle(Settings.PROGRAM_TITLE);
+        frame.setResizable(false);
+        frame.setVisible(true);
+        frame.getContentPane().add(new Renderer(dimension));
 
     }
 }
