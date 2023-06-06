@@ -1,26 +1,35 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
-import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 import static java.awt.image.BufferedImage.TYPE_INT_RGB;
 
 public class Renderer extends JPanel {
+
+    private Display display;
     private BufferedImage image;
-    private int[] pixels;
     private int pixelSize;
     private Dimension renderingDimension;
-    public Renderer(int width, int height, int[] pixels) {
-        renderingDimension = new Dimension(width, height);
 
-        this.setSize(new Dimension(width*Settings.DISPLAY_MULTIPLIER, height*Settings.DISPLAY_MULTIPLIER));
 
+    public Renderer(Display display) {
+        this.display = display;
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(new Dimension(Settings.DISPLAY_MULTIPLIER * display.width, Settings.DISPLAY_MULTIPLIER*display.height));
+        frame.setTitle(Settings.PROGRAM_TITLE);
+        frame.setResizable(false);
+
+        renderingDimension = new Dimension(display.width, display.height);
+        this.setSize(new Dimension(display.width*Settings.DISPLAY_MULTIPLIER, display.height*Settings.DISPLAY_MULTIPLIER));
         this.image = new BufferedImage(getWidth(), getHeight(), TYPE_INT_RGB);
-        this.pixels = pixels;
-        pixelSize = Math.min(width / getWidth(), height / getHeight());
+        pixelSize = Settings.DISPLAY_MULTIPLIER;
         image.createGraphics();
+
+        frame.add(this);
+        frame.setVisible(true);
     }
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -34,16 +43,20 @@ public class Renderer extends JPanel {
             }
         }
     }
+
     private Graphics2D getImageGraphics() {
         return (Graphics2D) image.getGraphics();
     }
-    public void setPixels(int[] pixels) {
-        this.pixels = pixels;
+
+    public void setDisplay(Display pixels) {
+
+        this.display = pixels;
     }
+
     public void update() {
         for (int i = 0; i < renderingDimension.height; i++) {
             for (int j = 0; j < renderingDimension.width; j++) {
-                image.setRGB(j, i, pixels[j+i*Settings.DISPLAY_MULTIPLIER]);
+                image.setRGB(j, i, display.pixel(j, i));
             }
         }
         this.repaint();
