@@ -1,35 +1,31 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
+import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 import static java.awt.image.BufferedImage.TYPE_INT_RGB;
 
 public class Renderer extends JPanel {
-
-    private Display display;
     private BufferedImage image;
+    private Display display;
     private int pixelSize;
-    private Dimension renderingDimension;
-
-
     public Renderer(Display display) {
         this.display = display;
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(new Dimension(Settings.DISPLAY_MULTIPLIER * display.width, Settings.DISPLAY_MULTIPLIER*display.height));
-        frame.setTitle(Settings.PROGRAM_TITLE);
-        frame.setResizable(false);
+        this.pixelSize = Settings.DISPLAY_MULTIPLIER;
+        Dimension commonDimension = new Dimension(display.width*Settings.DISPLAY_MULTIPLIER, display.height*Settings.DISPLAY_MULTIPLIER);
 
-        renderingDimension = new Dimension(display.width, display.height);
-        this.setSize(new Dimension(display.width*Settings.DISPLAY_MULTIPLIER, display.height*Settings.DISPLAY_MULTIPLIER));
+        this.setSize(commonDimension);
         this.image = new BufferedImage(getWidth(), getHeight(), TYPE_INT_RGB);
-        pixelSize = Settings.DISPLAY_MULTIPLIER;
         image.createGraphics();
 
-        frame.add(this);
-        frame.setVisible(true);
+        JFrame JFrame = new JFrame(Settings.PROGRAM_TITLE);
+        JFrame.setSize(commonDimension);
+        JFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        JFrame.setResizable(false);
+        JFrame.getContentPane().add(this);
+        JFrame.setVisible(true);
     }
-
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -43,19 +39,9 @@ public class Renderer extends JPanel {
             }
         }
     }
-
-    private Graphics2D getImageGraphics() {
-        return (Graphics2D) image.getGraphics();
-    }
-
-    public void setDisplay(Display pixels) {
-
-        this.display = pixels;
-    }
-
     public void update() {
-        for (int i = 0; i < renderingDimension.height; i++) {
-            for (int j = 0; j < renderingDimension.width; j++) {
+        for (int i = 0; i < display.height; i++) {
+            for (int j = 0; j < display.width; j++) {
                 image.setRGB(j, i, display.pixel(j, i));
             }
         }

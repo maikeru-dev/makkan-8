@@ -1,7 +1,7 @@
 import java.nio.ByteBuffer;
 
 public class Font {
-    private static final byte[] font = {
+    private static final byte[] font = { // Be careful reading this back: https://stackoverflow.com/questions/10756264/java-writing-integers-to-file-as-unsigned-8-bit-integer
             (byte) 0xF0, (byte) 0x90, (byte) 0x90, (byte) 0x90, (byte) 0xF0, // 0
             (byte) 0x20, (byte) 0x60, (byte) 0x20, (byte) 0x20, (byte) 0x70, // 1
             (byte) 0xF0, (byte) 0x10, (byte) 0xF0, (byte) 0x80, (byte) 0xF0, // 2

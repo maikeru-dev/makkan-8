@@ -23,11 +23,17 @@ public class RAM {
         memory.put(location, data, offset, size);
     }
 
-    public byte read(int location) {
+    public byte read8(int location) {
         if(location >= memory.limit()) {
             throw new ArrayIndexOutOfBoundsException("Ram is only " + memory.limit() + "bytes long");
         }
         return memory.get(location);
+    }
+    public short read16(int location) {
+        if (location+1 >= memory.limit()){
+            throw new ArrayIndexOutOfBoundsException("Ram is only " + memory.limit() + "bytes long");
+        }
+        return memory.getShort(location);
     }
 
     public ByteBuffer readBytes(int location, int size) {
