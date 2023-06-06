@@ -1,3 +1,4 @@
+import java.io.File;
 import java.util.Stack;
 
 public class Chip8 {
@@ -9,42 +10,155 @@ public class Chip8 {
     private RAM memory;
     private Display display;
     private int PC;
-    private short I;
+    public short I;
     private Stack<Short> functionStack;
     private byte delayTimer;
     private byte soundTimer; // Gives off beeping sound if not 0
-    private byte[] variableRegisters;
-
+    public byte[] variableRegisters;
 
     public Chip8() {
         this.memory = new RAM(Settings.RAM_SIZE);
         this.display = new Display();
-        this.PC = 0x200;
-        this.I = 0x000;
+        this.PC = 0x200 / 8;
+        this.I = 0x000; // / 8;
         this.functionStack = new Stack<>();
         this.delayTimer = 0x000;
         this.soundTimer = 0x000;
         this.variableRegisters = new byte[16];
     }
-    private short fetchInstruction() {
+    public Display getDisplay() {
+        return display;
+    }
+    public void update() {
+        decodeInstruction(fetchInstruction());
+    }
+    public RAM getRAM() {
+        return memory;
+    }
+
+    public void loadROM(String filename) {
+        memory.loadROMFile(0x200, new File(filename));
+    }
+    public void printAllRegisters() {
+        System.out.println();
+        System.out.println("Variable Registers:");
+        for (byte register : variableRegisters){
+            String binaryString = Integer.toBinaryString(register);
+            // Add leading zeroes if necessary
+            binaryString = String.format("%8s", binaryString).replace(' ', '0');
+            System.out.println(binaryString);
+        }
+        System.out.println();
+        System.out.println("PC: " + Integer.toBinaryString(PC));
+        System.out.println("I:" + Integer.toBinaryString(I));
+    }
+    public short fetchInstruction() {
         PC += 2;
         return memory.read16((PC-2)*8);
     }
-    private void decodeInstruction(short instruction) {
-        // 00E0 : Clear screen
+    public void decodeInstruction(short instruction) {
+        // 00E0
         // 1 NNN : JUMP
-        // 00EE : SUBROUTINE RETURN : JUMP BUT BEFORE JUMP FIRST PUSH PC
+        // 00EE :
         // 2 NNN : SUBROUTINE EXECUTE : RETURN STATEMENT FOR SUBROUTINE
         //
-        switch (instruction & FIRST_M) {
-            case 0x0000 -> {
+        switch (instruction) {
+            case 0x00E0 -> { // : Clear screen
+                display.fillScreen(0x000000);
+            }
+            case 0x00EE -> { // : SUBROUTINE RETURN : JUMP BUT BEFORE JUMP FIRST PUSH PC
 
             }
-            case 0x1000 -> {
+            default -> {
+                switch (instruction & FIRST_M) {
+                    case 0x1000 -> { // : JUMP - 12 bit NNN
+                        PC = (short) ((instruction << 4) >> 4);
+                    }
+                    case 0x6000 -> { // : SET REG X TO NN : 6XNN
+                        variableRegisters[(instruction & SECOND_M) >> 8] = (byte) ((instruction << 8) >> 8);
+                    }
+                    case 0x7000 -> { // : ADD NN TO REG X
+                        variableRegisters[(instruction & SECOND_M) >> 8] += (byte) ((instruction << 8) >> 8);
+                    }
+                    case (short) 0xA000 -> { // : SET INDEX REG TO NNN
+                        I = (short) ((instruction << 4) >> 4);
+                    }
+                    case (short) 0xC000 -> {
 
+                    }
+                    case (short) 0xD000 -> { // : DISPLAY, XY = Addresses
+                        System.out.print(Integer.toBinaryString(instruction));
+                        byte x = (byte) (variableRegisters[(instruction & SECOND_M) >> 8]  % display.width);
+                        byte y = (byte) (variableRegisters[(instruction & THIRD_M) >> 4]  % display.height);
+                        byte N = (byte) (instruction & LAST_M);
+
+
+                        variableRegisters[0xF] = 0;
+
+                        for (int n = 0; n < N; n++) {
+                            byte sprite_row = memory.read8(I + n);
+                            for (int i = (x > display.width-7 ? display.width-x : 7); i >= 0; i--) {
+                                int bit = (sprite_row >> i) & 1;
+                                if (display.updatePixel(x,y, bit)) {
+                                    variableRegisters[0xF] = 1;
+                                }
+                                x++;
+                            }
+
+                            y++;
+                            if (y > 32) break;
+                        }
+
+                    }
+                    case 0x3000 -> { // 3XNN: Skip one instruction if X = NN
+                        if (variableRegisters[(instruction & SECOND_M) >> 8] == ((instruction << 8) >> 8)) PC++;
+                    }
+                    case 0x4000 -> { // 4XNN: Skip one instruction if X != NN;
+                        if (variableRegisters[(instruction & SECOND_M) >> 8] != ((instruction << 8) >> 8)) PC++;
+                    }
+                    case 0x5000 -> { // 5XY0: Skip one instruction if X & Y are equal.
+                        if (variableRegisters[(instruction & SECOND_M) >> 8] == variableRegisters[(instruction & THIRD_M) >> 4]) PC++;
+                    }
+                    case (short) 0x9000 -> { // 9XY0: Skip one instruction if X & Y are NOT equal.
+                        if (variableRegisters[(instruction & SECOND_M) >> 8] != variableRegisters[(instruction & THIRD_M) >> 4]) PC++;
+                    }
+                    case (short) 0x8000 -> {
+                        switch (instruction & LAST_M) {
+                            case 0x0000 -> { // 8XY0: Set X to the value of Y.
+                                variableRegisters[(instruction & SECOND_M) >> 8] = variableRegisters[(instruction & THIRD_M) >> 4];
+                            }
+                            case 0x0001 -> { // 8XY1: Binary OR operation on X & Y, X is set to the result.
+                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & SECOND_M) >> 8] | variableRegisters[(instruction & THIRD_M) >> 4]);
+                            }
+                            case 0x0002 -> { // 8XY2: Binary AND operation on X & Y, X is set to the result.
+                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & SECOND_M) >> 8] & variableRegisters[(instruction & THIRD_M) >> 4]);
+                            }
+                            case 0x0003 -> { // 8XY3: Binary XOR operation on X & Y, X is set to the result.
+                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & SECOND_M) >> 8] ^ variableRegisters[(instruction & THIRD_M) >> 4]);
+                            }
+                            case 0x0004 -> { // 8XY4: Add X to Y, set X to the result.
+                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & SECOND_M) >> 8] + variableRegisters[(instruction & THIRD_M) >> 4]);
+                            }
+                            case 0x0005 -> { // 8XY5: Subtract Y from X, set X to the result.
+                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & SECOND_M) >> 8] - variableRegisters[(instruction & THIRD_M) >> 4]);
+                            }
+                            case 0x0007 -> { // 8XY7: Subtract X from Y, set X to the result.
+                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & THIRD_M) >> 4] - variableRegisters[(instruction & SECOND_M) >> 8]);
+                            }
+                        }
+
+                    }
+
+                    case (short) 0xF000 -> {
+
+
+                    }
+
+                }
             }
-            case 0
         }
+
+
     }
 
 

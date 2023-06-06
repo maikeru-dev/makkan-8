@@ -24,13 +24,19 @@ public class Display {
 
         pixels = new int[width*height];
     }
-
+    public void fillScreen(int value)  {
+        for (int i = 0; i < pixels.length; i++) {
+            pixels[i] = value;
+        }
+    }
     public int pixel(int x, int y) {
         return pixels[x+y*width];
     }
 
-    public void updatePixel(int x, int y, int colour)
+    public boolean updatePixel(int x, int y, int colour)
     {
+        boolean state = pixels[x+y*width] == 1;
         pixels[x+y*width] = colour;
+        return state;
     }
 }
