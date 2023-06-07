@@ -35,15 +35,15 @@ public class Display {
 
     public boolean updatePixel(int x, int y, int colour)
     {
-        boolean state = pixels[x+y*width] == 1;
-        if (state) { // xor logic
-            if (colour == 1) {
+        boolean state = pixels[x+y*width] == 0xFFFFFF;
+        if (colour == 1) { // xor logic
+            // flip
+            if (state) { // white
+                System.out.println("Hi");
                 pixels[x+y*width] = 0;
-            }else {
-                pixels[x+y*width] = 1;
+            }else { // black
+                pixels[x+y*width] = 0xFFFFFF;
             }
-        }else {
-            pixels[x+y*width] = colour;
         }
 
         return state;
