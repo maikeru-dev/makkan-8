@@ -5,7 +5,7 @@ public class Chip8 {
     private final static short FIRST_M = (short) 0b1111_0000_0000_0000;
     private final static short SECOND_M = (short) 0b0000_1111_0000_0000;
     private final static short THIRD_M = (short) 0b0000_0000_1111_0000;
-    private final static short LAST_M = (short) 0b0000_0000_0000_11111;
+    private final static short LAST_M = (short) 0b0000_0000_0000_1111;
 
     private RAM memory;
     private Display display;
@@ -14,7 +14,7 @@ public class Chip8 {
     private Stack<Short> functionStack;
     private byte delayTimer;
     private byte soundTimer; // Gives off beeping sound if not 0
-    public byte[] variableRegisters;
+    public byte[] V;
 
     public Chip8() {
         this.memory = new RAM(Settings.RAM_SIZE);
@@ -24,7 +24,7 @@ public class Chip8 {
         this.functionStack = new Stack<>();
         this.delayTimer = 0x000;
         this.soundTimer = 0x000;
-        this.variableRegisters = new byte[16];
+        this.V = new byte[16];
     }
     public Display getDisplay() {
         return display;
@@ -42,7 +42,7 @@ public class Chip8 {
     public void printAllRegisters() {
         System.out.println();
         System.out.println("Variable Registers:");
-        for (byte register : variableRegisters){
+        for (byte register : V){
             String binaryString = Integer.toBinaryString(register);
             // Add leading zeroes if necessary
             binaryString = String.format("%8s", binaryString).replace(' ', '0');
@@ -75,10 +75,10 @@ public class Chip8 {
                         PC = (short) ((instruction << 4) >> 4);
                     }
                     case 0x6000 -> { // : SET REG X TO NN : 6XNN
-                        variableRegisters[(instruction & SECOND_M) >> 8] = (byte) ((instruction << 8) >> 8);
+                        V[(instruction & SECOND_M) >> 8] = (byte) ((instruction << 8) >> 8);
                     }
                     case 0x7000 -> { // : ADD NN TO REG X
-                        variableRegisters[(instruction & SECOND_M) >> 8] += (byte) ((instruction << 8) >> 8);
+                        V[(instruction & SECOND_M) >> 8] += (byte) ((instruction << 8) >> 8);
                     }
                     case (short) 0xA000 -> { // : SET INDEX REG TO NNN
                         I = (short) ((instruction << 4) >> 4);
@@ -88,62 +88,62 @@ public class Chip8 {
                     }
                     case (short) 0xD000 -> { // : DISPLAY, XY = Addresses
                         System.out.print(Integer.toBinaryString(instruction));
-                        byte x = (byte) (variableRegisters[(instruction & SECOND_M) >> 8]  % display.width);
-                        byte y = (byte) (variableRegisters[(instruction & THIRD_M) >> 4]  % display.height);
+                        byte x = (byte) (V[(instruction & SECOND_M) >> 8]  % display.width);
+                        byte y = (byte) (V[(instruction & THIRD_M) >> 4]  % display.height);
                         byte N = (byte) (instruction & LAST_M);
 
 
-                        variableRegisters[0xF] = 0;
+                        V[0xF] = 0;
 
                         for (int n = 0; n < N; n++) {
                             byte sprite_row = memory.read8(I + n);
                             for (int i = (x > display.width-7 ? display.width-x : 7); i >= 0; i--) {
                                 int bit = (sprite_row >> i) & 1;
                                 if (display.updatePixel(x,y, bit)) {
-                                    variableRegisters[0xF] = 1;
+                                    V[0xF] = 1;
                                 }
                                 x++;
                             }
-
+                            x = (byte) (x-8);
                             y++;
                             if (y > 32) break;
                         }
 
                     }
                     case 0x3000 -> { // 3XNN: Skip one instruction if X = NN
-                        if (variableRegisters[(instruction & SECOND_M) >> 8] == ((instruction << 8) >> 8)) PC++;
+                        if (V[(instruction & SECOND_M) >> 8] == ((instruction << 8) >> 8)) PC++;
                     }
                     case 0x4000 -> { // 4XNN: Skip one instruction if X != NN;
-                        if (variableRegisters[(instruction & SECOND_M) >> 8] != ((instruction << 8) >> 8)) PC++;
+                        if (V[(instruction & SECOND_M) >> 8] != ((instruction << 8) >> 8)) PC++;
                     }
                     case 0x5000 -> { // 5XY0: Skip one instruction if X & Y are equal.
-                        if (variableRegisters[(instruction & SECOND_M) >> 8] == variableRegisters[(instruction & THIRD_M) >> 4]) PC++;
+                        if (V[(instruction & SECOND_M) >> 8] == V[(instruction & THIRD_M) >> 4]) PC++;
                     }
                     case (short) 0x9000 -> { // 9XY0: Skip one instruction if X & Y are NOT equal.
-                        if (variableRegisters[(instruction & SECOND_M) >> 8] != variableRegisters[(instruction & THIRD_M) >> 4]) PC++;
+                        if (V[(instruction & SECOND_M) >> 8] != V[(instruction & THIRD_M) >> 4]) PC++;
                     }
                     case (short) 0x8000 -> {
                         switch (instruction & LAST_M) {
                             case 0x0000 -> { // 8XY0: Set X to the value of Y.
-                                variableRegisters[(instruction & SECOND_M) >> 8] = variableRegisters[(instruction & THIRD_M) >> 4];
+                                V[(instruction & SECOND_M) >> 8] = V[(instruction & THIRD_M) >> 4];
                             }
                             case 0x0001 -> { // 8XY1: Binary OR operation on X & Y, X is set to the result.
-                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & SECOND_M) >> 8] | variableRegisters[(instruction & THIRD_M) >> 4]);
+                                V[(instruction & SECOND_M) >> 8] = (byte) (V[(instruction & SECOND_M) >> 8] | V[(instruction & THIRD_M) >> 4]);
                             }
                             case 0x0002 -> { // 8XY2: Binary AND operation on X & Y, X is set to the result.
-                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & SECOND_M) >> 8] & variableRegisters[(instruction & THIRD_M) >> 4]);
+                                V[(instruction & SECOND_M) >> 8] = (byte) (V[(instruction & SECOND_M) >> 8] & V[(instruction & THIRD_M) >> 4]);
                             }
                             case 0x0003 -> { // 8XY3: Binary XOR operation on X & Y, X is set to the result.
-                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & SECOND_M) >> 8] ^ variableRegisters[(instruction & THIRD_M) >> 4]);
+                                V[(instruction & SECOND_M) >> 8] = (byte) (V[(instruction & SECOND_M) >> 8] ^ V[(instruction & THIRD_M) >> 4]);
                             }
                             case 0x0004 -> { // 8XY4: Add X to Y, set X to the result.
-                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & SECOND_M) >> 8] + variableRegisters[(instruction & THIRD_M) >> 4]);
+                                V[(instruction & SECOND_M) >> 8] = (byte) (V[(instruction & SECOND_M) >> 8] + V[(instruction & THIRD_M) >> 4]);
                             }
                             case 0x0005 -> { // 8XY5: Subtract Y from X, set X to the result.
-                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & SECOND_M) >> 8] - variableRegisters[(instruction & THIRD_M) >> 4]);
+                                V[(instruction & SECOND_M) >> 8] = (byte) (V[(instruction & SECOND_M) >> 8] - V[(instruction & THIRD_M) >> 4]);
                             }
                             case 0x0007 -> { // 8XY7: Subtract X from Y, set X to the result.
-                                variableRegisters[(instruction & SECOND_M) >> 8] = (byte) (variableRegisters[(instruction & THIRD_M) >> 4] - variableRegisters[(instruction & SECOND_M) >> 8]);
+                                V[(instruction & SECOND_M) >> 8] = (byte) (V[(instruction & THIRD_M) >> 4] - V[(instruction & SECOND_M) >> 8]);
                             }
                         }
 

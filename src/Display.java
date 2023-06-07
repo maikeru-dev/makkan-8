@@ -36,7 +36,28 @@ public class Display {
     public boolean updatePixel(int x, int y, int colour)
     {
         boolean state = pixels[x+y*width] == 1;
-        pixels[x+y*width] = colour;
+        if (state) { // xor logic
+            if (colour == 1) {
+                pixels[x+y*width] = 0;
+            }else {
+                pixels[x+y*width] = 1;
+            }
+        }else {
+            pixels[x+y*width] = colour;
+        }
+
         return state;
+    }
+    public void printPixels(){
+        System.out.println();
+        for (int y = 0; y < height; y++){
+            for (int x = 0; x < width-1; x++){
+                if (pixels[x+y*width] == 16777215) {
+                    System.out.print(0);
+                }
+                else System.out.print(pixels[x+y*width]);
+            }
+            System.out.println(pixels[width-1+y*width]);
+        }
     }
 }
