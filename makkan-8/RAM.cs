@@ -1,6 +1,6 @@
 namespace makkan_8;
 
-public class RAM
+internal class RAM
 {
     private byte[] memory;
     private MemoryStream stream;
@@ -53,7 +53,7 @@ public class RAM
         return (ushort) ((memory[location] << 4) | memory[location + 1]);
     }
 
-    public void LoadROMFile(int location, String filepath)
+    public void LoadRomFile(int location, String filepath)
     {
         if (File.Exists(filepath)) throw new FileNotFoundException($"File at {filepath} doesn't exist.");
         try

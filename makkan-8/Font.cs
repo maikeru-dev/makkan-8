@@ -1,6 +1,6 @@
 namespace makkan_8;
 
-public static class Font
+internal static class Font
 {
     private static readonly byte[] font = { 
         // Be careful reading this back: https://stackoverflow.com/questions/10756264/java-writing-integers-to-file-as-unsigned-8-bit-integer

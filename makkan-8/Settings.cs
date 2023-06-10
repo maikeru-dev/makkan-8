@@ -1,7 +1,11 @@
+using System.Configuration;
+
+
 namespace makkan_8;
 
-public struct Settings
-{
+internal struct Settings
+{   
+    
     public const String PROGRAM_TITLE = "makkan-8";
 
     public const int DISPLAY_MULTIPLIER = 8;
