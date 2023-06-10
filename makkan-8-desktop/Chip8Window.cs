@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace makkan_8_desktop;
 
@@ -9,9 +11,12 @@ public class Chip8Window : Game
     private GraphicsDeviceManager Graphics;
     private Texture2D Pixel;
     
+    private KeypadHandler Keypad;
+
     public Chip8Window()
     {
         Graphics = new GraphicsDeviceManager(this);
+        Keypad = new KeypadHandler();
     }
 
     protected override void Initialize()
@@ -31,9 +36,10 @@ public class Chip8Window : Game
         Pixel.SetData(colors);
         base.Initialize();
     }
-
+    
     protected override void Update(GameTime deltaTime)
     {
+        var anyNewKey = Keypad.Update();
         base.Update(deltaTime);
     }
 
