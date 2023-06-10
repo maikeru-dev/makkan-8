@@ -7,20 +7,20 @@ public class Chip8 {
     private final static short THIRD_M = (short) 0b0000_0000_1111_0000;
     private final static short LAST_M = (short) 0b0000_0000_0000_1111;
 
-    private RAM memory;
-    private Display display;
-    private int PC;
+    public RAM memory;
+    public Display display;
+    public int PC;
     public short I;
-    private Stack<Short> functionStack;
-    private byte delayTimer;
-    private byte soundTimer; // Gives off beeping sound if not 0
+    public Stack<Short> functionStack;
+    public byte delayTimer;
+    public byte soundTimer; // Gives off beeping sound if not 0
     public byte[] V;
 
     public Chip8() {
         this.memory = new RAM(Settings.RAM_SIZE);
         this.display = new Display();
-        this.PC = 0x200 / 8;
-        this.I = 0x000; // / 8;
+        this.PC = 0x200;
+        this.I = 0x000;
         this.functionStack = new Stack<>();
         this.delayTimer = 0x000;
         this.soundTimer = 0x000;
@@ -54,7 +54,7 @@ public class Chip8 {
     }
     public short fetchInstruction() {
         PC += 2;
-        return memory.read16((PC-2)*8);
+        return memory.read16((PC-2));
     }
     public void decodeInstruction(short instruction) {
         // 00E0
@@ -72,31 +72,29 @@ public class Chip8 {
             default -> {
                 switch (instruction & FIRST_M) {
                     case 0x1000 -> { // : JUMP - 12 bit NNN
-                        PC = (short) ((instruction << 4) >> 4);
+                        PC = instruction & 0x0FFF;
                     }
                     case 0x6000 -> { // : SET REG X TO NN : 6XNN
-                        V[(instruction & SECOND_M) >> 8] = (byte) ((instruction << 8) >> 8);
+                        V[(instruction & SECOND_M) >> 8] = (byte) (instruction & 0x00FF);
                     }
                     case 0x7000 -> { // : ADD NN TO REG X
-                        V[(instruction & SECOND_M) >> 8] += (byte) ((instruction << 8) >> 8);
+                        V[(instruction & SECOND_M) >> 8] += (byte) (instruction & 0x00FF);
                     }
                     case (short) 0xA000 -> { // : SET INDEX REG TO NNN
-                        I = (short) ((instruction << 4) >> 4);
+                        I = (byte) (instruction & 0x0FFF);
                     }
                     case (short) 0xC000 -> {
 
                     }
                     case (short) 0xD000 -> { // : DISPLAY, XY = Addresses
-                        System.out.print(Integer.toBinaryString(instruction));
-                        byte x = (byte) (V[(instruction & SECOND_M) >> 8]  % display.width);
-                        byte y = (byte) (V[(instruction & THIRD_M) >> 4]  % display.height);
+                        byte x = (byte) (V[(instruction & SECOND_M) >> 8] % display.width);
+                        byte y = (byte) (V[(instruction & THIRD_M) >> 4] % display.height);
                         byte N = (byte) (instruction & LAST_M);
-
 
                         V[0xF] = 0;
 
                         for (int n = 0; n < N; n++) {
-                            byte sprite_row = memory.read8(I + n);
+                            byte sprite_row = memory.read8(Short.toUnsignedInt(I) + n);
                             for (int i = (x > display.width-7 ? display.width-x : 7); i >= 0; i--) {
                                 int bit = (sprite_row >> i) & 1;
                                 if (display.updatePixel(x,y, bit)) {
@@ -111,10 +109,10 @@ public class Chip8 {
 
                     }
                     case 0x3000 -> { // 3XNN: Skip one instruction if X = NN
-                        if (V[(instruction & SECOND_M) >> 8] == ((instruction << 8) >> 8)) PC++;
+                        if (V[(instruction & SECOND_M) >> 8] == (byte) (instruction & 0x0FF)) PC++;
                     }
                     case 0x4000 -> { // 4XNN: Skip one instruction if X != NN;
-                        if (V[(instruction & SECOND_M) >> 8] != ((instruction << 8) >> 8)) PC++;
+                        if (V[(instruction & SECOND_M) >> 8] != (byte) (instruction & 0x0FF)) PC++;
                     }
                     case 0x5000 -> { // 5XY0: Skip one instruction if X & Y are equal.
                         if (V[(instruction & SECOND_M) >> 8] == V[(instruction & THIRD_M) >> 4]) PC++;
