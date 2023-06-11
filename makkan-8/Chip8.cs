@@ -12,8 +12,8 @@ public class Chip8
     public RAM memory = new RAM(Settings.RAM_SIZE);
     public Stack<byte> inputs = new ();
     public Display display = new Display();
-    public int PC = 0x200;
-    public int I = 0x000;
+    public ushort PC = 0x200;
+    public ushort I = 0x000;
     private Stack<ushort> functionStack = new Stack<ushort>();
     private double timer = 0.0f;
     private byte delayTimer = 0x000;
@@ -54,8 +54,8 @@ public class Chip8
         byte X = (byte) ((instruction & 0x0F00) >> 8);
         byte Y = (byte) ((instruction & 0x00F0) >> 4);
         byte N = (byte) (instruction & 0x000F);
-        byte N2 = (byte) ((instruction & 0x00FF) >> 4);
-        byte N3 = (byte) ((instruction & 0x0FFF) >> 4);
+        byte N2 = (byte) (instruction & 0x00FF);
+        ushort N3 = (ushort) (instruction & 0x0FFF);
 
         // print out all instructions in hex
         switch (instruction)
