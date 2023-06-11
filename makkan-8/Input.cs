@@ -2,19 +2,47 @@ namespace makkan_8;
 
 public class Input
 { // This class can be used to interface with the Chip8 Emulator and provide input
-    private bool[] keyArr = new bool[16];
-    private Stack<byte> keyStack = new ();
+    protected bool[] keyArr = new bool[16];
+    protected Queue<byte> keyStack = new ();
     public Input()
     {
-
+        keyArr.Initialize();
+        
     }
 
-    public void addPressed(byte key)
+    public void Enable(byte keyCode)
     {
-        if (key > 16) throw new Exception("key input is out of range");
-
-        keyArr[key] = true;
+        keyArr[keyCode] = true;
+        if (keyStack.Count < 30)
+        {
+            keyStack.Enqueue(keyCode);
+        }
+        else // tbh haven't thought that hard on this else statement, might not work as I imagine
+        {
+            keyStack.Dequeue();
+            keyStack.Enqueue(keyCode);
+        }
+        
     }
-    
-    
+
+    public void Disable(byte keyCode)
+    {
+        keyArr[keyCode] = false;
+    }
+
+    public byte Dequeue()
+    {
+        return keyStack.Dequeue();
+    }
+
+    public bool IsQueuedEnabled()
+    {
+        if (keyStack.Count > 0)
+        {
+            return keyArr[keyStack.Peek()];
+        }
+
+        return false;
+    }
+
 }  

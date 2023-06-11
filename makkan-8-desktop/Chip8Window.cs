@@ -19,12 +19,12 @@ public class Chip8Window : Game
     private Texture2D Pixel;
 
     public Chip8Window()
-    {
-        Chip = new Chip8();
+    {   
+        Keypad = new KeypadHandler();
+        Chip = new Chip8(Keypad);
         Display = Chip.display;
-        Keypad = new KeypadHandler();
         Graphics = new GraphicsDeviceManager(this);
-        Keypad = new KeypadHandler();
+
     }
 
     protected override void Initialize()
@@ -42,8 +42,8 @@ public class Chip8Window : Game
             0x1A, 0xAA
         };
         Chip.memory.WriteBytes(0x200, new MemoryStream(rom), 0, rom.Length);
-        
-        Chip.LoadRom("C:/Users/mailr/Workspace/C#/makkan-8/makkan-8-desktop/Content/IBM Logo.ch8");
+
+        Chip.LoadRom("./../../../Content/IBM Logo.ch8");
         base.Initialize();
     }
     

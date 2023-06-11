@@ -10,18 +10,19 @@ public class Chip8
     private const ushort FirstMask = 0b1111_0000_0000_0000;
 
     public RAM memory = new RAM(Settings.RAM_SIZE);
-    public Stack<byte> inputs = new ();
+    public Input inputs;
     public Display display = new Display();
-    public ushort PC = 0x200;
-    public ushort I = 0x000;
+    public int PC = 0x200;
+    public int I = 0x000;
     private Stack<ushort> functionStack = new Stack<ushort>();
     private double timer = 0.0f;
     private byte delayTimer = 0x000;
     private byte soundTimer = 0x000;
     public byte[] V = new byte[16];
 
-    public Chip8()
+    public Chip8(Input inputs)
     {
+        this.inputs = inputs;
         memory.WriteBytes(0x50, Font.FONT_DATA, 0, (int) Font.FONT_DATA.Length);
     }
 
@@ -35,9 +36,9 @@ public class Chip8
         if (timer >= 1d / 60d)
         {
             delayTimer -= 1;
-            delayTimer = Math.Min(delayTimer, (byte) 0);
+            delayTimer = Math.Max(delayTimer, (byte) 0);
             soundTimer -= 1;
-            soundTimer = Math.Min(soundTimer, (byte)0);
+            soundTimer = Math.Max(soundTimer, (byte) 0);
             timer = 0;
         }
         DEInstruction(FetchInstruction());
@@ -55,7 +56,7 @@ public class Chip8
         byte Y = (byte) ((instruction & 0x00F0) >> 4);
         byte N = (byte) (instruction & 0x000F);
         byte N2 = (byte) (instruction & 0x00FF);
-        ushort N3 = (ushort) (instruction & 0x0FFF);
+        short N3 = (short) (instruction & 0x0FFF);
 
         // print out all instructions in hex
         switch (instruction)
@@ -66,8 +67,8 @@ public class Chip8
             case 0x00EE: // : SUBROUTINE RETURN : JUMP BUT BEFORE JUMP FIRST PUSH PC
                 break;
             default:
-                int a = instruction & 0b1111_0000_0000_0000;
-                switch (instruction & 0b1111_0000_0000_0000)
+                int a = instruction & 0xF000;
+                switch (instruction & 0xF000)
                 {
                     case 0x1000: // : JUMP - 12 bit NNN
                         PC = N3;
@@ -104,21 +105,20 @@ public class Chip8
                         }
                         break;
                     case 0xF000:
-                        switch (0b0000_0000_1111_1111 & instruction)
+                        switch (0x00FF & instruction)
                         {
                             case 0x000A:
-                                // THIS IS UR CODE MAKKA <3
-                                // byte location = (byte) ((SecondMask & instruction) >> 8);
-                                //
-                                // if (inputs) // byte
-                                // {
-                                //     PC += 2;
-                                //     V[location] = 
-                                // }
-                                // else
-                                // {
-                                //     PC -= 2; 
-                                // }
+                                byte location = (byte) ((SecondMask & instruction) >> 8);
+                                
+                                if (inputs.IsQueuedEnabled()) // byte
+                                {
+                                    PC += 2;
+                                    V[location] = inputs.Dequeue();
+                                }
+                                else
+                                {
+                                    PC -= 2; 
+                                }
                                 break;
                             case 0x0007:
                                 V[X] = delayTimer;

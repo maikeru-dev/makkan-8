@@ -21,7 +21,8 @@ internal static class Entry
     private static void Main()
     {
         // Entry
-        var chip = new Chip8();
+        
+        var chip = new Chip8(new Input());
         
         // Clear screen
         chip.display.FillScreen(0xFFFFFF);
