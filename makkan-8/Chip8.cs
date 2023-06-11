@@ -15,6 +15,7 @@ public class Chip8
     public int PC = 0x200;
     public int I = 0x000;
     private Stack<ushort> functionStack = new Stack<ushort>();
+    private double timer = 0.0f;
     private byte delayTimer = 0x000;
     private byte soundTimer = 0x000;
     public byte[] V = new byte[16];
@@ -28,8 +29,17 @@ public class Chip8
         memory.LoadRomFile(PC, filepath);
     }
 
-    public void Update()
+    public void Update(double deltaTime = 0.0f)
     {
+        timer += deltaTime;
+        if (timer >= 1d / 60d)
+        {
+            delayTimer -= 1;
+            delayTimer = Math.Min(delayTimer, (byte) 0);
+            soundTimer -= 1;
+            soundTimer = Math.Min(soundTimer, (byte)0);
+            timer = 0;
+        }
         DEInstruction(FetchInstruction());
     }
 
@@ -41,6 +51,12 @@ public class Chip8
 
     public void DEInstruction(ushort instruction)
     {
+        byte X = (byte) ((instruction & 0x0F00) >> 8);
+        byte Y = (byte) ((instruction & 0x00F0) >> 4);
+        byte N = (byte) (instruction & 0x000F);
+        byte N2 = (byte) ((instruction & 0x00FF) >> 4);
+        byte N3 = (byte) ((instruction & 0x0FFF) >> 4);
+
         // print out all instructions in hex
         switch (instruction)
         {
@@ -54,23 +70,22 @@ public class Chip8
                 switch (instruction & 0b1111_0000_0000_0000)
                 {
                     case 0x1000: // : JUMP - 12 bit NNN
-                        PC = 0b0000_1111_1111_1111 & instruction;
+                        PC = N3;
                         break;
                     case 0x6000: // : SET REG X TO NN : 6XNN
-                        V[(instruction & SecondMask) >> 8] = (byte) (0b0000_0000_1111_1111 & instruction);
+                        V[X] = N2;
                         break;
                     case 0x7000: // : ADD NN TO REG X : 7XNN
-                        V[(instruction & SecondMask) >> 8] += (byte) (0b0000_0000_1111_1111 & instruction);
+                        V[X] += N2;
                         break;
                     case 0xA000: // : SET INDEX REG TO NNN : ANNN
-                        I = 0b0000_1111_1111_1111 & instruction;
+                        I = N3;
                         break;
                     case 0xC000: // uNFINSHED damn why is NFINISHED unsigned?
                         break;
                     case 0xD000:
-                        byte x = (byte) (V[(instruction & SecondMask) >> 8] % display.width);
-                        byte y = (byte) (V[(instruction & ThirdMask) >> 4] % display.height);
-                        byte N = (byte) (instruction & LastMask);
+                        byte x = (byte) (V[X] % display.width);
+                        byte y = (byte) (V[Y] % display.height);
 
                         V[0xF] = 0;
 
@@ -104,6 +119,15 @@ public class Chip8
                                 // {
                                 //     PC -= 2; 
                                 // }
+                                break;
+                            case 0x0007:
+                                V[X] = delayTimer;
+                                break;
+                            case 0x0015:
+                                delayTimer = V[X];
+                                break;
+                            case 0x0017:
+                                soundTimer = V[X];
                                 break;
                         }
                         break;

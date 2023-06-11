@@ -49,7 +49,7 @@ public class Chip8Window : Game
     
     protected override void Update(GameTime deltaTime)
     {
-        Chip.Update();
+        Chip.Update(deltaTime.ElapsedGameTime.TotalMilliseconds);
         var anyNewKey = Keypad.Update();
         base.Update(deltaTime);
     }
