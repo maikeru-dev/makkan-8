@@ -14,8 +14,6 @@ public class Input
         if (key > 16) throw new Exception("key input is out of range");
 
         keyArr[key] = true;
-        keyStack.;
-
     }
     
     

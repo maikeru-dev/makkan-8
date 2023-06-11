@@ -66,7 +66,7 @@ public class KeypadHandler
         return KeyStates[(int)key];
     }
     
-    public bool GetKeyState(byte key)
+    public bool GetKeyDown(byte key)
     {
         return key switch
         {

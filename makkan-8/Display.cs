@@ -11,8 +11,8 @@ public class Display
 
     private int[] pixels;
 
-    private int height { get; }
-    private int width { get; }
+    public int height { get; }
+    public int width { get; }
 
     public Display() {
 

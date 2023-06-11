@@ -1,6 +1,9 @@
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+
 namespace makkan_8;
 
-internal class RAM
+public class RAM
 {
     private byte[] memory;
     private MemoryStream stream;
@@ -12,7 +15,6 @@ internal class RAM
         memory[0] = 0b1111;
         memory[1] = 0b1111;
     }
-
     public void Write(int location, byte data)
     {
         if (location >= memory.Length)
@@ -49,13 +51,13 @@ internal class RAM
         {
             throw new IndexOutOfRangeException($"Ram is only {memory.Length} long!");
         }
-
-        return (ushort) ((memory[location] << 4) | memory[location + 1]);
+        
+        return (ushort) ((memory[location] << 8) | memory[location + 1]);
     }
-
+    
     public void LoadRomFile(int location, String filepath)
     {
-        if (File.Exists(filepath)) throw new FileNotFoundException($"File at {filepath} doesn't exist.");
+        if (!File.Exists(filepath)) throw new FileNotFoundException($"File at {filepath} doesn't exist.");
         try
         {
             var rom = File.ReadAllBytes(filepath);
@@ -64,7 +66,7 @@ internal class RAM
         }
         catch (Exception e)
         {
-            Console.Out.Write(e.StackTrace);
+            Debug.WriteLine(e.Message);
         }
     }
 
