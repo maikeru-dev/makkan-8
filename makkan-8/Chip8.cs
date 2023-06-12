@@ -12,7 +12,7 @@ public class Chip8
     public RAM memory = new RAM(Settings.RAM_SIZE);
     public Input inputs;
     public Display display = new Display();
-    public int PC = 0x200;
+    public ushort PC = 0x200;
     public int I = 0x000;
     private Stack<ushort> functionStack = new Stack<ushort>();
     private double timer = 0.0f;
@@ -32,7 +32,7 @@ public class Chip8
 
     public void Update(double deltaTime = 0.0f)
     {
-        timer += deltaTime;
+        timer += deltaTime; // This outputs 60 instructions per second
         if (timer >= 1d / 60d)
         {
             delayTimer -= 1;
@@ -56,7 +56,7 @@ public class Chip8
         byte Y = (byte) ((instruction & 0x00F0) >> 4);
         byte N = (byte) (instruction & 0x000F);
         byte N2 = (byte) (instruction & 0x00FF);
-        short N3 = (short) (instruction & 0x0FFF);
+        ushort N3 = (ushort) (instruction & 0x0FFF);
 
         // print out all instructions in hex
         switch (instruction)
@@ -65,12 +65,17 @@ public class Chip8
                 display.FillScreen(0x000000);
                 break;
             case 0x00EE: // : SUBROUTINE RETURN : JUMP BUT BEFORE JUMP FIRST PUSH PC
+                PC = functionStack.Pop();
                 break;
             default:
                 int a = instruction & 0xF000;
                 switch (instruction & 0xF000)
                 {
                     case 0x1000: // : JUMP - 12 bit NNN
+                        PC = N3;
+                        break;
+                    case 0x2000:
+                        functionStack.Push(PC);
                         PC = N3;
                         break;
                     case 0x6000: // : SET REG X TO NN : 6XNN
@@ -92,7 +97,7 @@ public class Chip8
 
                         for (int n = 0; n < N; n++) {
                             byte spriteRow = memory.Read8(I + n);
-                            for (int i = (x > display.width-7 ? display.width-x : 7); i >= 0; i--) {
+                            for (int i = x > display.width-7 ? display.width-x : 7; i >= 0; i--) {
                                 int bit = (spriteRow >> i) & 1;
                                 if (display.UpdatePixel(x,y, bit)) {
                                     V[0xF] = 1;
