@@ -60,16 +60,9 @@ public class Chip8Window : Game
 
     protected override void Update(GameTime deltaTime)
     {
-        
         Chip.Update(deltaTime.ElapsedGameTime.TotalSeconds);
-        
-        if (Chip.soundTimer > 0 && SoundTimer <= 0)
-        {
-            BeepSoundEffect.Play();
-            SoundTimer = SoundDelay;
-        }
-        SoundTimer -= deltaTime.ElapsedGameTime.TotalSeconds;
-        
+        bool playSound = Chip.soundTimer > 0;
+        if(playSound) Sound(deltaTime);
         var anyNewKey = Keypad.Update();
         base.Update(deltaTime);
     }
@@ -97,5 +90,15 @@ public class Chip8Window : Game
         spriteBatch.End();
         
         base.Draw(deltaTime);
+    }
+
+    void Sound(GameTime deltaTime)
+    {
+        if (SoundTimer <= 0)
+        {
+            BeepSoundEffect.Play();
+            SoundTimer = SoundDelay;
+        }
+        SoundTimer -= deltaTime.ElapsedGameTime.TotalSeconds;
     }
 }
