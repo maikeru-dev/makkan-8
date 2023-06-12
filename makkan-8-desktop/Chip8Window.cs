@@ -19,12 +19,12 @@ public class Chip8Window : Game
     private Texture2D Pixel;
 
     public Chip8Window()
-    {   
-        Keypad = new KeypadHandler();
-        Chip = new Chip8(Keypad);
+    {
+        Chip = new Chip8();
         Display = Chip.display;
+        Keypad = new KeypadHandler();
         Graphics = new GraphicsDeviceManager(this);
-
+        Keypad = new KeypadHandler();
     }
 
     protected override void Initialize()
@@ -41,15 +41,15 @@ public class Chip8Window : Game
             0xD0, 0x15,
             0x1A, 0xAA
         };
-        Chip.memory.WriteBytes(0x200, new MemoryStream(rom), 0, rom.Length);
-
-        Chip.LoadRom("./../../../Content/IBM Logo.ch8");
+        Chip.memory.WriteBytes(Settings.ROM_ADRESS, new MemoryStream(rom), 0, rom.Length);
+        
+        Chip.LoadRom("C:/Users/mailr/Workspace/C#/makkan-8/makkan-8-desktop/Content/Space Invaders [David Winter].ch8");
         base.Initialize();
     }
     
     protected override void Update(GameTime deltaTime)
     {
-        Chip.Update(deltaTime.ElapsedGameTime.TotalMilliseconds);
+        Chip.Update(deltaTime.ElapsedGameTime.TotalSeconds);
         var anyNewKey = Keypad.Update();
         base.Update(deltaTime);
     }
