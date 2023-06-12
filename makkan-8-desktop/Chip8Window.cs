@@ -20,11 +20,10 @@ public class Chip8Window : Game
 
     public Chip8Window()
     {
-        Chip = new Chip8();
+        Keypad = new KeypadHandler();
+        Chip = new Chip8(Keypad);
         Display = Chip.display;
-        Keypad = new KeypadHandler();
         Graphics = new GraphicsDeviceManager(this);
-        Keypad = new KeypadHandler();
     }
 
     protected override void Initialize()
@@ -43,12 +42,14 @@ public class Chip8Window : Game
         };
         Chip.memory.WriteBytes(Settings.ROM_ADRESS, new MemoryStream(rom), 0, rom.Length);
         
-        Chip.LoadRom("C:/Users/mailr/Workspace/C#/makkan-8/makkan-8-desktop/Content/Space Invaders [David Winter].ch8");
+        Chip.LoadRom("./../../../Content/KPTest.ch8");
+        
         base.Initialize();
     }
     
     protected override void Update(GameTime deltaTime)
     {
+        
         Chip.Update(deltaTime.ElapsedGameTime.TotalSeconds);
         var anyNewKey = Keypad.Update();
         base.Update(deltaTime);

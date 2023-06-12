@@ -25,22 +25,22 @@ public class KeypadHandler : Input
     {
         return key switch
         {
-            Keys.D1 => 0,
-            Keys.D2 => 1,
-            Keys.D3 => 2,
-            Keys.D4 => 3,
+            Keys.D1 => 1,
+            Keys.D2 => 2,
+            Keys.D3 => 3,
+            Keys.D4 => 0xC,
             Keys.Q => 4,
             Keys.W => 5,
             Keys.E => 6,
-            Keys.R => 7,
-            Keys.A => 8,
-            Keys.S => 9,
-            Keys.D => 10,
-            Keys.F => 11,
-            Keys.Z => 12,
-            Keys.X => 13,
-            Keys.C => 14,
-            Keys.V => 15,
+            Keys.R => 0xD,
+            Keys.A => 7,
+            Keys.S => 8,
+            Keys.D => 9,
+            Keys.F => 0xE,
+            Keys.Z => 0xA,
+            Keys.X => 0,
+            Keys.C => 0xB,
+            Keys.V => 0xF,
             _ => 16
         };
 
