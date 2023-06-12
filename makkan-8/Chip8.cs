@@ -16,8 +16,8 @@ public class Chip8
     public ushort I = 0x000;
     private Stack<ushort> functionStack = new Stack<ushort>();
     private double timer = 0.0f;
-    private byte delayTimer = 0x000;
-    private byte soundTimer = 0x000;
+    public byte delayTimer = 0x000;
+    public byte soundTimer = 0x000;
     public byte[] V = new byte[16];
 
     public Chip8()

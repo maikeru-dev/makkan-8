@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using makkan_8;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -17,6 +18,9 @@ public class Chip8Window : Game
     
     private GraphicsDeviceManager Graphics;
     private Texture2D Pixel;
+    private SoundEffect BeepSoundEffect;
+    private double SoundDelay = 0.1;
+    private double SoundTimer = 0.0;
 
     public Chip8Window()
     {
@@ -46,10 +50,25 @@ public class Chip8Window : Game
         Chip.LoadRom("C:/Users/mailr/Workspace/C#/makkan-8/makkan-8-desktop/Content/Space Invaders [David Winter].ch8");
         base.Initialize();
     }
-    
+
+    protected override void LoadContent()
+    {
+        Content.RootDirectory = "Content";
+        BeepSoundEffect = Content.Load<SoundEffect>("Beep Sound");
+        base.LoadContent();
+    }
+
     protected override void Update(GameTime deltaTime)
     {
         Chip.Update(deltaTime.ElapsedGameTime.TotalSeconds);
+        
+        if (Chip.soundTimer > 0 && SoundTimer <= 0)
+        {
+            BeepSoundEffect.Play();
+            SoundTimer = SoundDelay;
+        }
+        SoundTimer -= deltaTime.ElapsedGameTime.TotalSeconds;
+        
         var anyNewKey = Keypad.Update();
         base.Update(deltaTime);
     }
