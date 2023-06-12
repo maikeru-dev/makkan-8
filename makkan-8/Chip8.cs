@@ -4,13 +4,8 @@ namespace makkan_8;
 
 public class Chip8
 {
-    private const ushort LastMask = 0b0000_0000_0000_1111;
-    private const ushort ThirdMask = 0b0000_0000_1111_0000;
-    private const ushort SecondMask = 0b0000_1111_0000_0000;
-    private const ushort FirstMask = 0b1111_0000_0000_0000;
-
     public RAM memory = new RAM(Settings.RAM_SIZE);
-    public Stack<byte> inputs = new ();
+    public Input inputs;
     public Display display = new Display();
     public ushort PC = Settings.ROM_ADRESS;
     public ushort I = 0x000;
@@ -20,8 +15,9 @@ public class Chip8
     public byte soundTimer = 0x000;
     public byte[] V = new byte[16];
 
-    public Chip8()
+    public Chip8(Input inputs)
     {
+        this.inputs = inputs;
         memory.WriteBytes(Settings.FONT_ADRESS, Font.FONT_DATA, 0, (int) Font.FONT_DATA.Length);
     }
 
@@ -51,7 +47,7 @@ public class Chip8
         {
             DEInstruction(FetchInstruction());
         }
-        Debug.WriteLine($"Instructions per sercond: {instructionAmount / deltaTime}");
+        // Debug.WriteLine($"Input peek @ 0: {inputs.Peek()}");
 
     }
 
@@ -79,9 +75,7 @@ public class Chip8
                 switch (instruction & 0b1111_0000_0000_0000)
                 {
                     case 0x0000: // : SUBROUTINES RETURN : return to top of function stack and pop
-                        if(N2 == 0xEE) {
-                            PC = functionStack.Pop();
-                        }
+                        PC = functionStack.Pop();
                         break;
                     case 0x2000: // : SUBROUTINES CALL : call the function in NNN but push PC to function stack
                         functionStack.Push(PC);
@@ -200,18 +194,26 @@ public class Chip8
                         switch (0b0000_0000_1111_1111 & instruction)
                         {
                             case 0x000A:
-                                // THIS IS UR CODE MAKKA <3
-                                // byte location = (byte) ((SecondMask & instruction) >> 8);
-                                //
-                                // if (inputs) // byte
-                                // {
-                                //     PC += 2;
-                                //     V[location] = 
-                                // }
-                                // else
-                                // {
-                                //     PC -= 2; 
-                                // }
+
+                                byte location = X;
+                                if (inputs.IsQueuedEnabled()) // byte
+                                
+                                {
+                                    byte xa = inputs.Dequeue();
+                                    Debug.WriteLine($"{xa:X}");
+                                    V[location] = xa;
+                                }
+                                else
+                                {
+                                    inputs.Dequeue();
+                                    PC -= 2; 
+                                }
+                                break;
+                            case 0x00A1:
+                                if (!inputs.isPressed(X)) PC += 2;
+                                break;
+                            case 0x009E:
+                                if (inputs.isPressed(X)) PC += 2;
                                 break;
                             case 0x0007:
                                 V[X] = delayTimer;

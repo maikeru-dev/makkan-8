@@ -57,7 +57,7 @@ public class RAM
     
     public void LoadRomFile(int location, String filepath)
     {
-        if (!File.Exists(filepath)) throw new FileNotFoundException($"File at {filepath} doesn't exist.");
+        if (!File.Exists(filepath)) throw new FileNotFoundException($"File at {Path.GetFullPath($"./{filepath}")} doesn't exist.");
         try
         {
             var rom = File.ReadAllBytes(filepath);
